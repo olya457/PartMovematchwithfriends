@@ -1,4 +1,4 @@
-package com.partmovematchwithfriends
+package com.part.move.match.with.friends
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate

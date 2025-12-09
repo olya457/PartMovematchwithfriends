@@ -1,4 +1,4 @@
-package com.partmovematchwithfriends
+package com.part.move.match.with.friends
 
 import android.app.Application
 import com.facebook.react.PackageList
