@@ -1,4 +1,4 @@
-package com.part.move.match.with.friends
+package com.reactiontipikopulse
 
 import android.app.Application
 import com.facebook.react.PackageList

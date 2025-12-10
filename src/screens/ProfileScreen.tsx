@@ -12,6 +12,7 @@ import {
   Pressable,
   Animated,
   Easing,
+  ImageBackground, 
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { launchImageLibrary, Asset } from 'react-native-image-picker';
@@ -24,11 +25,12 @@ const { width, height } = Dimensions.get('window');
 const IS_SMALL = Math.min(width, height) < 700 || width <= 360;
 const VERY_SMALL = height < 670;
 
-const YELLOW = '#FFE651';
+const BACKGROUND_IMAGE = require('../assets/background.png'); 
+const YELLOW = '#f1f1f1ff';
 const TEXT = '#FFFFFF';
 const SUB = '#CFCFCF';
-const BG = '#000000';
-const CARD_BG = '#0B0B0B';
+const OVERLAY_COLOR = '#32090914'; 
+const CARD_BG = '#0b0b0b36';
 
 const STORAGE_KEY = 'pm_profile_v1';
 
@@ -50,6 +52,7 @@ export default function ProfileScreen({ navigation }: Props) {
   const nameRef = useRef<TextInput>(null);
   const fade = useRef(new Animated.Value(0)).current;
   const shift = useRef(new Animated.Value(12)).current;
+  
   useEffect(() => {
     Animated.parallel([
       Animated.timing(fade, { toValue: 1, duration: 420, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
@@ -70,8 +73,10 @@ export default function ProfileScreen({ navigation }: Props) {
         });
       }
     } catch {
+
     }
   };
+  
   useEffect(() => {
     loadProfile();
   }, []);
@@ -105,9 +110,10 @@ export default function ProfileScreen({ navigation }: Props) {
     try {
       await Share.share({
         message:
-          'Part Move: match with friends is a reaction game where every move counts. Choose your sport, train your speed, compete with friends and track your progress in convenient statistics.',
+          'Reaction Tip Iko Pulse is a reaction game where every move counts. Choose your sport, train your speed, compete with friends and track your progress in convenient statistics.',
       });
-    } catch {}
+    } catch {
+    }
   };
 
   const [tempName, setTempName] = useState('');
@@ -124,67 +130,73 @@ export default function ProfileScreen({ navigation }: Props) {
   };
 
   return (
-    <View style={styles.root}>
-      <View style={styles.headerWrap}>
-        <View style={styles.headerBar}>
-          <TouchableOpacity style={styles.headerBtn} onPress={() => navigation.goBack()} activeOpacity={0.9}>
-            <Text style={styles.headerBtnIcon}>←</Text>
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Profile</Text>
-          <View style={styles.headerBtn}>
-            <Image source={require('../assets/logo.png')} style={styles.headerLogo} resizeMode="contain" />
+    <ImageBackground source={BACKGROUND_IMAGE} style={styles.background} resizeMode="cover">
+      <View style={styles.overlay} />
+      
+      <View style={styles.rootContent}>
+        <View style={styles.headerWrap}>
+          <View style={styles.headerBar}>
+            <TouchableOpacity style={styles.headerBtn} onPress={() => navigation.goBack()} activeOpacity={0.9}>
+              <Text style={styles.headerBtnIcon}>←</Text>
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Profile</Text>
+            <View style={styles.headerBtn}>
+              <Image source={require('../assets/logo.png')} style={styles.headerLogo} resizeMode="contain" />
+            </View>
           </View>
         </View>
+
+        <Animated.View style={[styles.content, { opacity: fade, transform: [{ translateY: shift }] }]}>
+          <View style={styles.card}>
+            <Pressable onPress={changePhoto} style={({ pressed }) => [styles.avatarWrap, pressed && { opacity: 0.85 }]}>
+              {profile.photoUri ? (
+                <Image source={{ uri: profile.photoUri }} style={styles.avatar} resizeMode="cover" />
+              ) : (
+                <Image source={require('../assets/add_photo_placeholder.png')} style={styles.avatar} resizeMode="cover" />
+              )}
+            </Pressable>
+
+            <View style={styles.nameBox}>
+              <TextInput
+                ref={nameRef}
+                style={[styles.nameInput, !edit && styles.nameInputDisabled]}
+                value={tempName}
+                onChangeText={setTempName}
+                editable={edit}
+                placeholder="Your name"
+                placeholderTextColor="#8F8F8F"
+                returnKeyType="done"
+                onSubmitEditing={onToggleEdit}
+              />
+            </View>
+
+            <TouchableOpacity style={styles.editBtn} activeOpacity={0.9} onPress={onToggleEdit}>
+              <Text style={styles.editBtnText}>{editBtnTitle}</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.bigCard}>
+            <Image source={require('../assets/logo.png')} style={styles.bigLogo} resizeMode="contain" />
+            <Text style={styles.desc}>
+              Reaction Tip Iko Pulse is a reaction game where every move counts. Choose your sport, train your
+              speed, compete with friends and track your progress in convenient statistics. Check how fast you can win.
+            </Text>
+            <TouchableOpacity style={styles.shareBtn} onPress={onShare} activeOpacity={0.9}>
+              <Text style={styles.shareBtnText}>Share</Text>
+            </TouchableOpacity>
+          </View>
+        </Animated.View>
       </View>
-
-      <Animated.View style={[styles.content, { opacity: fade, transform: [{ translateY: shift }] }]}>
-        <View style={styles.card}>
-          <Pressable onPress={changePhoto} style={({ pressed }) => [styles.avatarWrap, pressed && { opacity: 0.85 }]}>
-            {profile.photoUri ? (
-              <Image source={{ uri: profile.photoUri }} style={styles.avatar} resizeMode="cover" />
-            ) : (
-              <Image source={require('../assets/add_photo_placeholder.png')} style={styles.avatar} resizeMode="cover" />
-            )}
-          </Pressable>
-
-          <View style={styles.nameBox}>
-            <TextInput
-              ref={nameRef}
-              style={[styles.nameInput, !edit && styles.nameInputDisabled]}
-              value={tempName}
-              onChangeText={setTempName}
-              editable={edit}
-              placeholder="Your name"
-              placeholderTextColor="#8F8F8F"
-              returnKeyType="done"
-              onSubmitEditing={onToggleEdit}
-            />
-          </View>
-
-          <TouchableOpacity style={styles.editBtn} activeOpacity={0.9} onPress={onToggleEdit}>
-            <Text style={styles.editBtnText}>{editBtnTitle}</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.bigCard}>
-          <Image source={require('../assets/logo.png')} style={styles.bigLogo} resizeMode="contain" />
-          <Text style={styles.desc}>
-            Part Move: match with friends is a reaction game where every move counts. Choose your sport, train your
-            speed, compete with friends and track your progress in convenient statistics. Check how fast you can win.
-          </Text>
-          <TouchableOpacity style={styles.shareBtn} onPress={onShare} activeOpacity={0.9}>
-            <Text style={styles.shareBtnText}>Share</Text>
-          </TouchableOpacity>
-        </View>
-      </Animated.View>
-    </View>
+    </ImageBackground>
   );
 }
 
 const CARD_W = Math.min(width - 32, 420);
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: BG, alignItems: 'center', paddingTop: IS_SMALL ? 60 : 64 },
+  background: { flex: 1 },
+  overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: OVERLAY_COLOR },
+  rootContent: { flex: 1, alignItems: 'center', paddingTop: IS_SMALL ? 60 : 64 },
 
   headerWrap: { width: '100%', paddingHorizontal: 16, marginBottom: 34 },
   headerBar: {
@@ -195,6 +207,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
+    backgroundColor: '#000000a0', 
   },
   headerBtn: {
     width: 48,
@@ -204,6 +217,7 @@ const styles = StyleSheet.create({
     borderColor: YELLOW,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#000000a0', 
   },
   headerBtnIcon: { color: TEXT, fontSize: 18, fontWeight: '800', marginTop: -1 },
   headerTitle: { flex: 1, textAlign: 'center', color: TEXT, fontSize: 20, fontWeight: '800' },

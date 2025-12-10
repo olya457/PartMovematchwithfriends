@@ -12,6 +12,7 @@ import {
   FlatList,
   RefreshControl,
   ListRenderItemInfo,
+  ImageBackground, 
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsFocused } from '@react-navigation/native';
@@ -26,10 +27,11 @@ const { width, height } = Dimensions.get('window');
 const IS_SMALL = Math.min(width, height) < 700 || width <= 360;
 const VERY_SMALL = height < 670;
 
-const YELLOW = '#FFE651';
+const BACKGROUND_IMAGE = require('../assets/background.png'); 
+const YELLOW = '#efefecff';
 const TEXT = '#FFFFFF';
 const SUB = '#CFCFCF';
-const BG = '#000000';
+const OVERLAY_COLOR = '#32090921'; 
 
 const SOLO_KEY = 'pm_stats_solo_v1';
 const DUO_KEY  = 'pm_stats_duo_v1';
@@ -84,7 +86,6 @@ export default function StatisticsNoDataScreen({ navigation }: Props) {
   }, [duoList]);
 
   const format = (t: number) => t.toFixed(3);
-  const formatIndex = (len:number, idx:number) => `#${len - idx}`;
   const formatDate = (ts?: number) => {
     if (!ts) return '';
     const d = new Date(ts);
@@ -208,62 +209,74 @@ export default function StatisticsNoDataScreen({ navigation }: Props) {
   const contentBottomPad = VERY_SMALL ? 96 : IS_SMALL ? 80 : 56;
 
   return (
-    <View style={styles.root}>
-      <HeaderBar title="Statistics" />
-      <Animated.View style={[styles.content, { opacity: fade, transform: [{ translateY: shift }], marginTop: IS_SMALL ? 76 : 84 }]}>
-        {mode === 'solo' ? (
-          <FlatList<number>
-            data={soloList.slice().reverse()}
-            keyExtractor={(_, i) => `s-${i}`}
-            renderItem={renderSolo}
-            ListHeaderComponent={<AvgAndTabs />}
-            ListEmptyComponent={
-              <View style={{ alignItems: 'center', marginTop: scale(120) }}>
-                <Text style={[styles.nodata, { fontSize: scale(16) }]}>No data…</Text>
-              </View>
-            }
-            refreshControl={<RefreshControl refreshing={loading} onRefresh={loadData} tintColor={YELLOW} />}
-            contentContainerStyle={{ paddingBottom: contentBottomPad, paddingTop: scale(16) }}
-            initialNumToRender={10}
-            removeClippedSubviews
-          />
-        ) : (
-          <FlatList<DuoItem>
-            data={duoList.slice().reverse()}
-            keyExtractor={(_, i) => `d-${i}`}
-            renderItem={renderDuo}
-            ListHeaderComponent={<AvgAndTabs />}
-            ListEmptyComponent={
-              <View style={{ alignItems: 'center', marginTop: scale(120) }}>
-                <Text style={[styles.nodata, { fontSize: scale(16) }]}>No data…</Text>
-              </View>
-            }
-            refreshControl={<RefreshControl refreshing={loading} onRefresh={loadData} tintColor={YELLOW} />}
-            contentContainerStyle={{ paddingBottom: contentBottomPad, paddingTop: scale(16) }}
-            initialNumToRender={10}
-            removeClippedSubviews
-          />
-        )}
-      </Animated.View>
-    </View>
+    <ImageBackground source={BACKGROUND_IMAGE} style={styles.background} resizeMode="cover">
+      <View style={styles.overlay} />
+      
+      <View style={styles.rootContent}>
+        <HeaderBar title="Statistics" />
+        <Animated.View style={[styles.content, { opacity: fade, transform: [{ translateY: shift }] }]}>
+          {mode === 'solo' ? (
+            <FlatList<number>
+              data={soloList.slice().reverse()}
+              keyExtractor={(_, i) => `s-${i}`}
+              renderItem={renderSolo}
+              ListHeaderComponent={<AvgAndTabs />}
+              ListEmptyComponent={
+                <View style={{ alignItems: 'center', marginTop: scale(120) }}>
+                  <Text style={[styles.nodata, { fontSize: scale(16) }]}>No data…</Text>
+                </View>
+              }
+              refreshControl={<RefreshControl refreshing={loading} onRefresh={loadData} tintColor={YELLOW} />}
+              contentContainerStyle={{ paddingBottom: contentBottomPad, paddingTop: scale(16) }}
+              initialNumToRender={10}
+              removeClippedSubviews
+            />
+          ) : (
+            <FlatList<DuoItem>
+              data={duoList.slice().reverse()}
+              keyExtractor={(_, i) => `d-${i}`}
+              renderItem={renderDuo}
+              ListHeaderComponent={<AvgAndTabs />}
+              ListEmptyComponent={
+                <View style={{ alignItems: 'center', marginTop: scale(120) }}>
+                  <Text style={[styles.nodata, { fontSize: scale(16) }]}>No data…</Text>
+                </View>
+              }
+              refreshControl={<RefreshControl refreshing={loading} onRefresh={loadData} tintColor={YELLOW} />}
+              contentContainerStyle={{ paddingBottom: contentBottomPad, paddingTop: scale(16) }}
+              initialNumToRender={10}
+              removeClippedSubviews
+            />
+          )}
+        </Animated.View>
+      </View>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: BG, alignItems: 'center', paddingTop: IS_SMALL ? 60 : 64 },
+  background: { flex: 1 },
+  overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: OVERLAY_COLOR },
+  rootContent: { flex: 1, alignItems: 'center', paddingTop: IS_SMALL ? 60 : 64 },
+  
   headerWrap: { width: '100%', paddingHorizontal: 16 },
   headerBar: {
     height: 64, borderWidth: 2, borderColor: YELLOW, borderRadius: 18,
     flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12,
+    backgroundColor: '#000000a0', 
   },
-  headerBtn: { width: 48, height: 48, borderRadius: 12, borderWidth: 2, borderColor: YELLOW, alignItems: 'center', justifyContent: 'center' },
+  headerBtn: { 
+    width: 48, height: 48, borderRadius: 12, borderWidth: 2, borderColor: YELLOW, 
+    alignItems: 'center', justifyContent: 'center',
+    backgroundColor: '#0000001b', 
+  },
   headerBtnIcon: { color: TEXT, fontSize: 18, fontWeight: '800', marginTop: -1 },
   headerTitle: { flex: 1, textAlign: 'center', color: TEXT, fontSize: 20, fontWeight: '800' },
   headerLogo: { width: 34, height: 34 },
 
-  content: { width: '100%', paddingHorizontal: 16 },
+  content: { width: '100%', paddingHorizontal: 16, flex: 1 },
 
-  avgCard: { borderWidth: 2, borderColor: YELLOW, borderRadius: 18, alignItems: 'center', backgroundColor: '#000' },
+  avgCard: { borderWidth: 2, borderColor: YELLOW, borderRadius: 18, alignItems: 'center', backgroundColor: '#000000c0' },
   avgTitle: { color: SUB, fontWeight: '700' },
   avgValue: { color: TEXT, fontWeight: '900' },
 
@@ -283,13 +296,13 @@ const styles = StyleSheet.create({
 
   nodata: { color: SUB },
 
-  itemRow: { width: '100%', borderWidth: 2, borderColor: YELLOW, backgroundColor: '#000' },
+  itemRow: { width: '100%', borderWidth: 2, borderColor: YELLOW, backgroundColor: '#000000c0', overflow: 'hidden' },
   itemDate: { color: SUB },
   itemPill: { alignSelf: 'flex-start', backgroundColor: YELLOW, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, marginTop: 6 },
   itemPillText: { color: '#0B0B0B', fontWeight: '900' },
 
   itemTwoCols: { flexDirection: 'row', width: '100%' },
-  smallPill: { flex: 1, borderWidth: 2, borderColor: YELLOW, alignItems: 'center', justifyContent: 'center' },
+  smallPill: { flex: 1, borderWidth: 2, borderColor: YELLOW, alignItems: 'center', justifyContent: 'center', backgroundColor: '#111111c0' },
   smallPillName: { color: SUB, marginBottom: 2 },
   smallPillVal: { color: TEXT, fontWeight: '900' },
 });

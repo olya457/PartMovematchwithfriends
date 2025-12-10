@@ -10,6 +10,7 @@ import {
   ScrollView,
   Animated,
   Easing,
+  ImageBackground, 
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
@@ -20,8 +21,11 @@ const { width, height } = Dimensions.get('window');
 const IS_SMALL = Math.min(width, height) < 700 || width <= 360;
 const VERY_SMALL = height < 670;
 
-const YELLOW = '#FFE651';
-const CARD_BG = '#0B0B0B';
+const BACKGROUND_IMAGE = require('../assets/background.png'); 
+const OVERLAY_COLOR = '#0000001d'; 
+
+const YELLOW = '#f0efe8ff';
+const CARD_BG = '#320909e4';
 const TEXT = '#FFFFFF';
 const SUBTEXT = '#CFCFCF';
 
@@ -84,7 +88,8 @@ export default function OnboardingScreen({ navigation }: Props) {
   const buttonLabel = useMemo(() => PAGES[index].btn, [index]);
 
   return (
-    <View style={styles.root}>
+    <ImageBackground source={BACKGROUND_IMAGE} style={styles.background} resizeMode="cover">
+      <View style={styles.overlay} />
       <SafeAreaView style={{ flex: 1 }}>
         <Animated.View style={[styles.logoWrap, { transform: [{ translateY: logoY }], opacity: logoOpacity }]}>
           <Image source={require('../assets/logo.png')} style={styles.logo} resizeMode="contain" />
@@ -122,7 +127,7 @@ export default function OnboardingScreen({ navigation }: Props) {
           <Text style={styles.btnText}>{buttonLabel}</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </ImageBackground>
   );
 }
 
@@ -134,9 +139,10 @@ const BTN_PAD_V = VERY_SMALL ? 12 : 14;
 const BTN_MIN_W = VERY_SMALL ? 108 : 120;
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#000000' },
+  background: { flex: 1 },
+  overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: OVERLAY_COLOR },
   logoWrap: { alignItems: 'center', justifyContent: 'center', paddingTop: TOP_OFFSET, marginBottom: IS_SMALL ? 8 : 12 },
-  logo: { width: Math.min(width * 0.46, 210), height: VERY_SMALL ? 40 : 46 },
+  logo: { width: Math.min(width * 0.46, 210), height: VERY_SMALL ? 90 : 96 },
   card: {
     alignSelf: 'center',
     width: CARD_SIZE,
@@ -166,8 +172,8 @@ const styles = StyleSheet.create({
   },
   dots: { flexDirection: 'row', gap: 8, flex: 1, justifyContent: 'flex-start' },
   dot: { width: 18, height: 12, borderRadius: 6, borderWidth: 1.5, borderColor: '#3A3A3A', backgroundColor: '#1E1E1E' },
-  dotActive: { backgroundColor: '#FFE651', borderColor: '#FFE651' },
+  dotActive: { backgroundColor: '#f5f4edff', borderColor: '#f6f5f0ff' },
   dotInactive: { opacity: 0.7 },
-  btn: { backgroundColor: '#FFE651', paddingVertical: BTN_PAD_V, paddingHorizontal: 22, borderRadius: 12, minWidth: BTN_MIN_W, alignItems: 'center' },
+  btn: { backgroundColor: '#f6f5f0ff', paddingVertical: BTN_PAD_V, paddingHorizontal: 22, borderRadius: 12, minWidth: BTN_MIN_W, alignItems: 'center' },
   btnText: { color: '#0B0B0B', fontSize: VERY_SMALL ? 15 : 16, fontWeight: '800' },
 });

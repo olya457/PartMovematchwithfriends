@@ -13,6 +13,7 @@ import {
   Pressable,
   StyleSheet as RNStyleSheet,
   ScrollView,
+  ImageBackground, 
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
@@ -25,10 +26,11 @@ const { width, height } = Dimensions.get('window');
 const IS_SMALL = Math.min(width, height) < 700 || width <= 360;
 const VERY_SMALL = height < 670;
 
-const YELLOW = '#FFE651';
+const BACKGROUND_IMAGE = require('../assets/background.png'); 
+const OVERLAY_COLOR = '#32090927'; 
+const YELLOW = '#eae9e4ff';
 const TEXT = '#FFFFFF';
 const SUB = '#CFCFCF';
-const BG = '#000';
 
 type Mode = 'solo' | 'duo' | null;
 
@@ -240,8 +242,8 @@ export default function ReactionGameModsScreen({ navigation }: Props) {
   const TABS_GAP = scale(22);
   const BALL_SRC = BALL_ASSETS[sport];
 
-  const ContentWrap: React.FC<{ children: React.ReactNode }> = ({ children }) =>
-    VERY_SMALL ? (
+  const ContentWrap: React.FC<{ children: React.ReactNode, isSoloResult?: boolean }> = ({ children, isSoloResult = false }) =>
+    VERY_SMALL || isSoloResult ? (
       <ScrollView
         style={{ width: '100%' }}
         contentContainerStyle={{ alignItems: 'center', paddingBottom: 94 }}
@@ -254,252 +256,263 @@ export default function ReactionGameModsScreen({ navigation }: Props) {
     );
 
   return (
-    <View style={styles.root}>
-      <HeaderBar title="Reaction game" />
-      <Animated.View style={{ flex: 1, width: '100%', alignItems: 'center', opacity: fade, transform: [{ translateY: shift }] }}>
-        <ContentWrap>
-          {stage === 'choose' && (
-            <>
-              <Text style={[styles.chooseTitle, { fontSize: scale(16) }]}>Choose a mode</Text>
+    <ImageBackground source={BACKGROUND_IMAGE} style={styles.background} resizeMode="cover">
+      <View style={styles.overlay} />
 
-              <View style={[styles.modeWrap, { gap: TABS_GAP }]}>
-                <TouchableOpacity
-                  style={[styles.modeBtn, { height: BTN_H, borderRadius: scale(12) }, mode === 'solo' && styles.modeBtnActive]}
-                  onPress={() => { setMode('solo'); setStage('playing'); setSoloPhase('idle'); resetBall(); }}
-                  activeOpacity={0.9}
-                >
-                  <Text style={[styles.modeText, { fontSize: scale(16) }, mode === 'solo' && styles.modeTextActive]}>Solo mode</Text>
-                </TouchableOpacity>
+      <View style={styles.rootContent}>
+        <HeaderBar title="Reaction game" />
+        <Animated.View style={{ flex: 1, width: '100%', alignItems: 'center', opacity: fade, transform: [{ translateY: shift }] }}>
+          <ContentWrap isSoloResult={stage === 'playing' && mode === 'solo' && soloPhase === 'result'}>
+            {stage === 'choose' && (
+              <>
+                <Text style={[styles.chooseTitle, { fontSize: scale(16) }]}>Choose a mode</Text>
 
-                <TouchableOpacity
-                  style={[styles.modeBtn, { height: BTN_H, borderRadius: scale(12) }, mode === 'duo' && styles.modeBtnActive]}
-                  onPress={() => { setMode('duo'); setStage('playing'); setDuoPhase('names'); setP1Time(null); setP2Time(null); resetBall(); }}
-                  activeOpacity={0.9}
-                >
-                  <Text style={[styles.modeText, { fontSize: scale(16) }, mode === 'duo' && styles.modeTextActive]}>Duo mode</Text>
-                </TouchableOpacity>
-              </View>
-            </>
-          )}
-
-          {stage === 'playing' && mode === 'solo' && (
-            <>
-              <View style={styles.smallModeBar}><Text style={styles.smallModeText}>Solo mode</Text></View>
-
-              <View style={[styles.card, { width: CARD_SIZE, height: CARD_SIZE }]}>
-                {soloPhase === 'idle' && (
-                  <TouchableOpacity style={styles.startBtn} onPress={runSolo} activeOpacity={0.9}>
-                    <Text style={styles.startText}>Start</Text>
-                  </TouchableOpacity>
-                )}
-
-                {soloPhase === 'countdown' && count !== null && count > 0 && <Text style={styles.countdown}>{count}</Text>}
-                {soloPhase === 'startWord' && <Text style={styles.startWord}>Start</Text>}
-
-                {soloPhase === 'moving' && (
-                  <View style={[RNStyleSheet.absoluteFillObject, { pointerEvents: 'box-none' }]}>
-                    <AnimatedPressable
-                      onPressIn={onBallPressIn}
-                      style={[
-                        styles.ballWrap,
-                        { left: centerLeft, top: centerTop, width: BALL, height: BALL, transform: [{ translateX: ballX }, { translateY: ballY }] },
-                      ]}
-                      android_ripple={undefined}
-                    >
-                      <Image source={BALL_SRC} style={{ width: '100%', height: '100%' }} resizeMode="contain" />
-                    </AnimatedPressable>
-                  </View>
-                )}
-              </View>
-
-              {soloPhase === 'result' && (
-                <>
-                  <Text style={styles.resultTitle}>Your result</Text>
-                  <View style={styles.resultBigPill}><Text style={styles.resultBigPillText}>{format(soloTime)} sec.</Text></View>
-                  <Text style={styles.resultHint}>You showed a good result, keep it up!</Text>
-                  <TouchableOpacity style={[styles.actionBtn, styles.shareBtn]} onPress={shareSolo} activeOpacity={0.9}>
-                    <Text style={styles.actionBtnText}>Share</Text>
-                  </TouchableOpacity>
+                <View style={[styles.modeWrap, { gap: TABS_GAP }]}>
                   <TouchableOpacity
-                    style={[styles.actionBtn, styles.playAgainBtn]}
-                    onPress={() => { setSoloTime(null); setSoloPhase('idle'); }}
+                    style={[styles.modeBtn, { height: BTN_H, borderRadius: scale(12) }, mode === 'solo' && styles.modeBtnActive]}
+                    onPress={() => { setMode('solo'); setStage('playing'); setSoloPhase('idle'); resetBall(); }}
                     activeOpacity={0.9}
                   >
-                    <Text style={styles.actionBtnText}>Play again</Text>
+                    <Text style={[styles.modeText, { fontSize: scale(16) }, mode === 'solo' && styles.modeTextActive]}>Solo mode</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={() => navigation.replace('home')} style={styles.homeLink}>
-                    <Text style={styles.homeLinkText}>Home</Text>
+
+                  <TouchableOpacity
+                    style={[styles.modeBtn, { height: BTN_H, borderRadius: scale(12) }, mode === 'duo' && styles.modeBtnActive]}
+                    onPress={() => { setMode('duo'); setStage('playing'); setDuoPhase('names'); setP1Time(null); setP2Time(null); resetBall(); }}
+                    activeOpacity={0.9}
+                  >
+                    <Text style={[styles.modeText, { fontSize: scale(16) }, mode === 'duo' && styles.modeTextActive]}>Duo mode</Text>
                   </TouchableOpacity>
-                </>
-              )}
-            </>
-          )}
+                </View>
+              </>
+            )}
 
-          {stage === 'playing' && mode === 'duo' && (
-            <>
-              <View style={styles.smallModeBar}><Text style={styles.smallModeText}>Duo mode</Text></View>
+            {stage === 'playing' && mode === 'solo' && (
+              <>
+                <View style={styles.smallModeBar}><Text style={styles.smallModeText}>Solo mode</Text></View>
 
-              {duoPhase === 'names' && (
-                <>
-                  <View style={[styles.card, { width: CARD_SIZE, height: CARD_SIZE, padding: 16, justifyContent: 'center' }]}>
-                    <Text style={styles.inputLabel}>Enter names</Text>
-
-                    <TouchableOpacity
-                      activeOpacity={0.95}
-                      onPress={() => p1Ref.current?.focus()}
-                      style={[styles.nameRow, { borderRadius: scale(12), height: scale(46) }]}
-                    >
-                      <TextInput
-                        ref={p1Ref}
-                        value={p1}
-                        onChangeText={setP1}
-                        placeholder="Player 1"
-                        placeholderTextColor="#8F8F8F"
-                        selectionColor={YELLOW}
-                        autoCorrect={false}
-                        returnKeyType="next"
-                        onFocus={() => {
-                          if (!clearedP1.current && (p1 === 'Player 1' || p1.trim() === '')) {
-                            clearedP1.current = true;
-                            setP1('');
-                            setTimeout(() => p1Ref.current?.setNativeProps?.({ selection: { start: 0, end: 0 } }), 0);
-                          }
-                        }}
-                        onSubmitEditing={() => p2Ref.current?.focus()}
-                        style={styles.nameInput}
-                      />
+                <View style={[styles.card, { width: CARD_SIZE, height: CARD_SIZE }]}>
+                  {soloPhase === 'idle' && (
+                    <TouchableOpacity style={styles.startBtn} onPress={runSolo} activeOpacity={0.9}>
+                      <Text style={styles.startText}>Start</Text>
                     </TouchableOpacity>
-
-                    <TouchableOpacity
-                      activeOpacity={0.95}
-                      onPress={() => p2Ref.current?.focus()}
-                      style={[styles.nameRow, { borderRadius: scale(12), height: scale(46), marginTop: 10 }]}
-                    >
-                      <TextInput
-                        ref={p2Ref}
-                        value={p2}
-                        onChangeText={setP2}
-                        placeholder="Player 2"
-                        placeholderTextColor="#8F8F8F"
-                        selectionColor={YELLOW}
-                        autoCorrect={false}
-                        returnKeyType="done"
-                        onFocus={() => {
-                          if (!clearedP2.current && (p2 === 'Player 2' || p2.trim() === '')) {
-                            clearedP2.current = true;
-                            setP2('');
-                            setTimeout(() => p2Ref.current?.setNativeProps?.({ selection: { start: 0, end: 0 } }), 0);
-                          }
-                        }}
-                        onSubmitEditing={() => beginDuoFor(1)}
-                        style={styles.nameInput}
-                      />
-                    </TouchableOpacity>
-                  </View>
-
-                  <TouchableOpacity style={[styles.actionBtn, { height: scale(IS_SMALL ? 56 : 60) }]} onPress={() => beginDuoFor(1)} activeOpacity={0.9}>
-                    <Text style={styles.actionBtnText}>Start</Text>
-                  </TouchableOpacity>
-                </>
-              )}
-
-              {(duoPhase === 'countdown' || duoPhase === 'startWord' || duoPhase === 'moving' || duoPhase === 'p1done' || duoPhase === 'p2done' || duoPhase === 'final') && (
-                <>
-                  {(duoPhase === 'countdown' || duoPhase === 'startWord' || duoPhase === 'moving') && (
-                    <View style={styles.playerTag}><Text style={styles.playerTagText}>{currentPlayer === 1 ? (p1 || 'Player 1') : (p2 || 'Player 2')}</Text></View>
                   )}
 
-                  {(duoPhase === 'countdown' || duoPhase === 'startWord' || duoPhase === 'moving') && (
-                    <View style={[styles.card, { width: CARD_SIZE, height: CARD_SIZE }]}>
-                      {duoPhase === 'countdown' && count !== null && count > 0 && <Text style={styles.countdown}>{count}</Text>}
-                      {duoPhase === 'startWord' && <Text style={styles.startWord}>Start</Text>}
-                      {duoPhase === 'moving' && (
-                        <View style={[RNStyleSheet.absoluteFillObject, { pointerEvents: 'box-none' }]}>
-                          <AnimatedPressable
-                            onPressIn={onBallPressIn}
-                            style={[
-                              styles.ballWrap,
-                              { left: centerLeft, top: centerTop, width: BALL, height: BALL, transform: [{ translateX: ballX }, { translateY: ballY }] },
-                            ]}
-                            android_ripple={undefined}
-                          >
-                            <Image source={BALL_SRC} style={{ width: '100%', height: '100%' }} resizeMode="contain" />
-                          </AnimatedPressable>
-                        </View>
-                      )}
+                  {soloPhase === 'countdown' && count !== null && count > 0 && <Text style={styles.countdown}>{count}</Text>}
+                  {soloPhase === 'startWord' && <Text style={styles.startWord}>Start</Text>}
+
+                  {soloPhase === 'moving' && (
+                    <View style={[RNStyleSheet.absoluteFillObject, { pointerEvents: 'box-none' }]}>
+                      <AnimatedPressable
+                        onPressIn={onBallPressIn}
+                        style={[
+                          styles.ballWrap,
+                          { left: centerLeft, top: centerTop, width: BALL, height: BALL, transform: [{ translateX: ballX }, { translateY: ballY }] },
+                        ]}
+                        android_ripple={undefined}
+                      >
+                        <Image source={BALL_SRC} style={{ width: '100%', height: '100%' }} resizeMode="contain" />
+                      </AnimatedPressable>
                     </View>
                   )}
+                </View>
 
-                  {duoPhase === 'p1done' && (
-                    <TouchableOpacity style={[styles.actionBtn, { height: scale(IS_SMALL ? 56 : 60) }]} onPress={() => beginDuoFor(2)} activeOpacity={0.9}>
-                      <Text style={styles.actionBtnText}>Next player</Text>
+                {soloPhase === 'result' && (
+                  <>
+                    <Text style={styles.resultTitle}>Your result</Text>
+                    <View style={styles.resultBigPill}><Text style={styles.resultBigPillText}>{format(soloTime)} sec.</Text></View>
+                    <Text style={styles.resultHint}>You showed a good result, keep it up!</Text>
+                    <TouchableOpacity style={[styles.actionBtn, styles.shareBtn]} onPress={shareSolo} activeOpacity={0.9}>
+                      <Text style={styles.actionBtnText}>Share</Text>
                     </TouchableOpacity>
-                  )}
-
-                  {duoPhase === 'p2done' && (
                     <TouchableOpacity
-                      style={[styles.actionBtn, { height: scale(IS_SMALL ? 56 : 60) }]}
-                      onPress={async () => {
-                        if (p1Time != null && p2Time != null) {
-                          await appendDuoResult({ p1: p1 || 'Player 1', p2: p2 || 'Player 2', t1: p1Time, t2: p2Time });
-                        }
-                        setDuoPhase('final');
-                      }}
+                      style={[styles.actionBtn, styles.playAgainBtn]}
+                      onPress={() => { setSoloTime(null); setSoloPhase('idle'); }}
                       activeOpacity={0.9}
                     >
-                      <Text style={styles.actionBtnText}>Result</Text>
+                      <Text style={styles.actionBtnText}>Play again</Text>
                     </TouchableOpacity>
-                  )}
+                    <TouchableOpacity onPress={() => navigation.replace('home')} style={styles.homeLink}>
+                      <Text style={styles.homeLinkText}>Home</Text>
+                    </TouchableOpacity>
+                  </>
+                )}
+              </>
+            )}
 
-                  {duoPhase === 'final' && (
-                    <>
-                      <Text style={styles.resultTitle}>Result</Text>
-                      <View style={styles.twoCols}>
-                        <View style={styles.resultSmallPill}>
-                          <Text style={styles.resultSmallPillName}>{p1 || 'Player 1'}</Text>
-                          <Text style={styles.resultSmallPillText}>{format(p1Time)} sec.</Text>
-                        </View>
-                        <View style={styles.resultSmallPill}>
-                          <Text style={styles.resultSmallPillName}>{p2 || 'Player 2'}</Text>
-                          <Text style={styles.resultSmallPillText}>{format(p2Time)} sec.</Text>
-                        </View>
-                      </View>
-                      <Text style={styles.resultHint}>You showed a great fight, each of you is worth attention.</Text>
-                      <TouchableOpacity style={[styles.actionBtn, styles.shareBtn, { height: scale(IS_SMALL ? 56 : 60) }]} onPress={shareDuo} activeOpacity={0.9}>
-                        <Text style={styles.actionBtnText}>Share</Text>
-                      </TouchableOpacity>
+            {stage === 'playing' && mode === 'duo' && (
+              <>
+                <View style={styles.smallModeBar}><Text style={styles.smallModeText}>Duo mode</Text></View>
+
+                {duoPhase === 'names' && (
+                  <>
+                    <View style={[styles.card, { width: CARD_SIZE, height: CARD_SIZE, padding: 16, justifyContent: 'center' }]}>
+                      <Text style={styles.inputLabel}>Enter names</Text>
+
                       <TouchableOpacity
-                        style={[styles.actionBtn, styles.playAgainBtn, { height: scale(IS_SMALL ? 56 : 60) }]}
-                        onPress={() => { setP1Time(null); setP2Time(null); setDuoPhase('names'); }}
+                        activeOpacity={0.95}
+                        onPress={() => p1Ref.current?.focus()}
+                        style={[styles.nameRow, { borderRadius: scale(12), height: scale(46) }]}
+                      >
+                        <TextInput
+                          ref={p1Ref}
+                          value={p1}
+                          onChangeText={setP1}
+                          placeholder="Player 1"
+                          placeholderTextColor="#8F8F8F"
+                          selectionColor={YELLOW}
+                          autoCorrect={false}
+                          returnKeyType="next"
+                          onFocus={() => {
+                            if (!clearedP1.current && (p1 === 'Player 1' || p1.trim() === '')) {
+                              clearedP1.current = true;
+                              setP1('');
+                              setTimeout(() => p1Ref.current?.setNativeProps?.({ selection: { start: 0, end: 0 } }), 0);
+                            }
+                          }}
+                          onSubmitEditing={() => p2Ref.current?.focus()}
+                          style={styles.nameInput}
+                        />
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        activeOpacity={0.95}
+                        onPress={() => p2Ref.current?.focus()}
+                        style={[styles.nameRow, { borderRadius: scale(12), height: scale(46), marginTop: 10 }]}
+                      >
+                        <TextInput
+                          ref={p2Ref}
+                          value={p2}
+                          onChangeText={setP2}
+                          placeholder="Player 2"
+                          placeholderTextColor="#8F8F8F"
+                          selectionColor={YELLOW}
+                          autoCorrect={false}
+                          returnKeyType="done"
+                          onFocus={() => {
+                            if (!clearedP2.current && (p2 === 'Player 2' || p2.trim() === '')) {
+                              clearedP2.current = true;
+                              setP2('');
+                              setTimeout(() => p2Ref.current?.setNativeProps?.({ selection: { start: 0, end: 0 } }), 0);
+                            }
+                          }}
+                          onSubmitEditing={() => beginDuoFor(1)}
+                          style={styles.nameInput}
+                        />
+                      </TouchableOpacity>
+                    </View>
+
+                    <TouchableOpacity style={[styles.actionBtn, { height: scale(IS_SMALL ? 56 : 60) }]} onPress={() => beginDuoFor(1)} activeOpacity={0.9}>
+                      <Text style={styles.actionBtnText}>Start</Text>
+                    </TouchableOpacity>
+                  </>
+                )}
+
+                {(duoPhase === 'countdown' || duoPhase === 'startWord' || duoPhase === 'moving' || duoPhase === 'p1done' || duoPhase === 'p2done' || duoPhase === 'final') && (
+                  <>
+                    {(duoPhase === 'countdown' || duoPhase === 'startWord' || duoPhase === 'moving') && (
+                      <View style={styles.playerTag}><Text style={styles.playerTagText}>{currentPlayer === 1 ? (p1 || 'Player 1') : (p2 || 'Player 2')}</Text></View>
+                    )}
+
+                    {(duoPhase === 'countdown' || duoPhase === 'startWord' || duoPhase === 'moving') && (
+                      <View style={[styles.card, { width: CARD_SIZE, height: CARD_SIZE }]}>
+                        {duoPhase === 'countdown' && count !== null && count > 0 && <Text style={styles.countdown}>{count}</Text>}
+                        {duoPhase === 'startWord' && <Text style={styles.startWord}>Start</Text>}
+                        {duoPhase === 'moving' && (
+                          <View style={[RNStyleSheet.absoluteFillObject, { pointerEvents: 'box-none' }]}>
+                            <AnimatedPressable
+                              onPressIn={onBallPressIn}
+                              style={[
+                                styles.ballWrap,
+                                { left: centerLeft, top: centerTop, width: BALL, height: BALL, transform: [{ translateX: ballX }, { translateY: ballY }] },
+                              ]}
+                              android_ripple={undefined}
+                            >
+                              <Image source={BALL_SRC} style={{ width: '100%', height: '100%' }} resizeMode="contain" />
+                            </AnimatedPressable>
+                          </View>
+                        )}
+                      </View>
+                    )}
+
+                    {duoPhase === 'p1done' && (
+                      <TouchableOpacity style={[styles.actionBtn, { height: scale(IS_SMALL ? 56 : 60) }]} onPress={() => beginDuoFor(2)} activeOpacity={0.9}>
+                        <Text style={styles.actionBtnText}>Next player</Text>
+                      </TouchableOpacity>
+                    )}
+
+                    {duoPhase === 'p2done' && (
+                      <TouchableOpacity
+                        style={[styles.actionBtn, { height: scale(IS_SMALL ? 56 : 60) }]}
+                        onPress={async () => {
+                          if (p1Time != null && p2Time != null) {
+                            await appendDuoResult({ p1: p1 || 'Player 1', p2: p2 || 'Player 2', t1: p1Time, t2: p2Time });
+                          }
+                          setDuoPhase('final');
+                        }}
                         activeOpacity={0.9}
                       >
-                        <Text style={styles.actionBtnText}>Play again</Text>
+                        <Text style={styles.actionBtnText}>Result</Text>
                       </TouchableOpacity>
-                      <TouchableOpacity onPress={() => navigation.replace('home')} style={styles.homeLink}>
-                        <Text style={styles.homeLinkText}>Home</Text>
-                      </TouchableOpacity>
-                    </>
-                  )}
-                </>
-              )}
-            </>
-          )}
-        </ContentWrap>
-      </Animated.View>
-    </View>
+                    )}
+
+                    {duoPhase === 'final' && (
+                      <>
+                        <Text style={styles.resultTitle}>Result</Text>
+                        <View style={styles.twoCols}>
+                          <View style={styles.resultSmallPill}>
+                            <Text style={styles.resultSmallPillName}>{p1 || 'Player 1'}</Text>
+                            <Text style={styles.resultSmallPillText}>{format(p1Time)} sec.</Text>
+                          </View>
+                          <View style={styles.resultSmallPill}>
+                            <Text style={styles.resultSmallPillName}>{p2 || 'Player 2'}</Text>
+                            <Text style={styles.resultSmallPillText}>{format(p2Time)} sec.</Text>
+                          </View>
+                        </View>
+                        <Text style={styles.resultHint}>You showed a great fight, each of you is worth attention.</Text>
+                        <TouchableOpacity style={[styles.actionBtn, styles.shareBtn, { height: scale(IS_SMALL ? 56 : 60) }]} onPress={shareDuo} activeOpacity={0.9}>
+                          <Text style={styles.actionBtnText}>Share</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={[styles.actionBtn, styles.playAgainBtn, { height: scale(IS_SMALL ? 56 : 60) }]}
+                          onPress={() => { setP1Time(null); setP2Time(null); setDuoPhase('names'); }}
+                          activeOpacity={0.9}
+                        >
+                          <Text style={styles.actionBtnText}>Play again</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => navigation.replace('home')} style={styles.homeLink}>
+                          <Text style={styles.homeLinkText}>Home</Text>
+                        </TouchableOpacity>
+                      </>
+                    )}
+                  </>
+                )}
+              </>
+            )}
+          </ContentWrap>
+        </Animated.View>
+      </View>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: BG, alignItems: 'center', paddingTop: IS_SMALL ? 60 : 64 },
+  background: { flex: 1 },
+  overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: OVERLAY_COLOR },
+  rootContent: { flex: 1, alignItems: 'center', paddingTop: IS_SMALL ? 60 : 64 },
   contentDown: { width: '100%', alignItems: 'center', marginTop: 60 },
 
   headerWrap: { width: '100%', paddingHorizontal: 16, marginBottom: 14 },
   headerBar: {
     height: 64, borderWidth: 2, borderColor: YELLOW, borderRadius: 18,
     flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12,
+    backgroundColor: '#000000a0', 
   },
-  headerBtn: { width: 48, height: 48, borderRadius: 12, borderWidth: 2, borderColor: YELLOW, alignItems: 'center', justifyContent: 'center' },
+  headerBtn: { 
+    width: 48, height: 48, borderRadius: 12, borderWidth: 2, borderColor: YELLOW, 
+    alignItems: 'center', justifyContent: 'center',
+    backgroundColor: '#000000a0', 
+  },
   headerBtnIcon: { color: TEXT, fontSize: 18, fontWeight: '800', marginTop: -1 },
   headerTitle: { flex: 1, textAlign: 'center', color: TEXT, fontSize: 20, fontWeight: '800' },
   headerLogo: { width: 34, height: 34 },
@@ -515,6 +528,7 @@ const styles = StyleSheet.create({
   smallModeBar: {
     height: 36, borderWidth: 2, borderColor: YELLOW, borderRadius: 10, paddingHorizontal: 12,
     alignItems: 'center', justifyContent: 'center', marginBottom: 12,
+    backgroundColor: '#00000080', 
   },
   smallModeText: { color: SUB, fontSize: 12, fontWeight: '800' },
 
@@ -555,11 +569,11 @@ const styles = StyleSheet.create({
   },
   nameInput: { color: TEXT, fontSize: 16, padding: 0 },
 
-  playerTag: { height: 30, paddingHorizontal: 12, borderRadius: 10, borderWidth: 2, borderColor: YELLOW, alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
+  playerTag: { height: 30, paddingHorizontal: 12, borderRadius: 10, borderWidth: 2, borderColor: YELLOW, alignItems: 'center', justifyContent: 'center', marginBottom: 8, backgroundColor: '#00000080' },
   playerTagText: { color: SUB, fontWeight: '800', fontSize: 12 },
 
   twoCols: { width: '100%', paddingHorizontal: 16, flexDirection: 'row', gap: 12, marginBottom: 8 },
-  resultSmallPill: { flex: 1, borderWidth: 2, borderColor: YELLOW, borderRadius: 12, height: 60, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12 },
+  resultSmallPill: { flex: 1, borderWidth: 2, borderColor: YELLOW, borderRadius: 12, height: 60, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12, backgroundColor: '#00000090' },
   resultSmallPillName: { color: SUB, fontSize: 12, marginBottom: 2 },
   resultSmallPillText: { color: TEXT, fontWeight: '900' },
 });

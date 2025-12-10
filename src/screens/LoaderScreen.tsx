@@ -8,6 +8,7 @@ import {
   Easing,
   SafeAreaView,
   Platform,
+  ImageBackground, 
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
@@ -17,6 +18,9 @@ type Props = NativeStackScreenProps<RootStackParamList, 'loader'>;
 const { width, height } = Dimensions.get('window');
 const IS_SMALL = Math.min(width, height) < 700 || width <= 360;
 const VERY_SMALL = height < 670;
+
+const BACKGROUND_IMAGE = require('../assets/background.png'); 
+const OVERLAY_COLOR = '#3209094d'; 
 
 export default function LoaderScreen({ navigation }: Props) {
   const logoY = useRef(new Animated.Value(-28)).current;
@@ -45,6 +49,7 @@ export default function LoaderScreen({ navigation }: Props) {
         useNativeDriver: true,
       }),
     ]).start();
+
     const bounceLoop = (val: Animated.Value, delayMs: number) =>
       Animated.loop(
         Animated.sequence([
@@ -72,7 +77,8 @@ export default function LoaderScreen({ navigation }: Props) {
   }, [logoY, logoOpacity, y1, y2, y3]);
 
   return (
-    <View style={styles.container}>
+    <ImageBackground source={BACKGROUND_IMAGE} style={styles.background} resizeMode="cover">
+      <View style={styles.overlay} />
       <SafeAreaView style={styles.safe}>
         <View style={styles.centerWrap} pointerEvents="none">
           <Animated.Image
@@ -103,19 +109,22 @@ export default function LoaderScreen({ navigation }: Props) {
           />
         </View>
       </SafeAreaView>
-    </View>
+    </ImageBackground>
   );
 }
 
-const LOGO_W = Math.min(width * 0.72, 360);
+const LOGO_W = Math.min(width * 0.72, 560);
 const LOGO_H = VERY_SMALL ? 92 : 120;
 const BALL_SIZE = VERY_SMALL ? 40 : IS_SMALL ? 44 : 52;
 const BALLS_BOTTOM = VERY_SMALL ? 48 + 30 : IS_SMALL ? 48 + 30 : 64 + 30;
 
 const styles = StyleSheet.create({
-  container: {
+  background: {
     flex: 1,
-    backgroundColor: '#000000',
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: OVERLAY_COLOR,
   },
   safe: { flex: 1 },
   centerWrap: {

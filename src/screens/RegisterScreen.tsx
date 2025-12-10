@@ -8,7 +8,6 @@ import {
   ImageBackground,
   Image,
   Dimensions,
-  Platform,
   SafeAreaView,
   Animated,
   Easing,
@@ -26,8 +25,9 @@ const { width, height } = Dimensions.get('window');
 const IS_SMALL = Math.min(width, height) < 700 || width <= 360;
 const VERY_SMALL = height < 670;
 
-const YELLOW = '#FFE651';
-const BG = '#000000';
+const BACKGROUND_IMAGE = require('../assets/background.png'); 
+const YELLOW = '#ebeae5ff';
+const OVERLAY_COLOR = '#1511111f'; 
 const CARD_BG = '#0B0B0B';
 const TEXT = '#FFFFFF';
 const SUBTEXT = '#CFCFCF';
@@ -112,101 +112,107 @@ export default function RegisterScreen({ navigation }: Props) {
   const buttonBottomInset = insets.bottom + (IS_SMALL ? 12 : 14);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: BG }}>
-      <View style={[styles.container, { paddingBottom: containerBottomPad }]}>
-        <Animated.View style={[styles.logoWrap, { paddingTop: logoTopPad, transform: [{ translateY: logoY }], opacity: logoOpacity }]}>
-          <Image source={require('../assets/logo.png')} style={styles.logo} resizeMode="contain" />
-        </Animated.View>
+    
+    <ImageBackground source={BACKGROUND_IMAGE} style={styles.background} resizeMode="cover">
+      <View style={styles.overlay} />
+      <SafeAreaView style={{ flex: 1 }}>
+        <View style={[styles.container, { paddingBottom: containerBottomPad }]}>
+          <Animated.View style={[styles.logoWrap, { paddingTop: logoTopPad, transform: [{ translateY: logoY }], opacity: logoOpacity }]}>
+            <Image source={require('../assets/logo.png')} style={styles.logo} resizeMode="contain" />
+          </Animated.View>
 
-        <Animated.View style={{ flex: 1, transform: [{ translateY: blockY }], opacity: blockOpacity }}>
-          <Text style={styles.header}>{step === 0 ? 'Choose a sport' : 'Registration'}</Text>
+          <Animated.View style={{ flex: 1, transform: [{ translateY: blockY }], opacity: blockOpacity }}>
+            <Text style={styles.header}>{step === 0 ? 'Choose a sport' : 'Registration'}</Text>
 
-          {step === 0 ? (
-            <View style={styles.sportList}>
-              {SPORTS.map((s) => {
-                const active = sport === s.key;
-                return (
-                  <TouchableOpacity
-                    key={s.key}
-                    style={[styles.sportCard, active && styles.sportCardActive]}
-                    onPress={() => setSport(s.key)}
-                    activeOpacity={0.9}
-                  >
-                    <ImageBackground
-                      source={s.img}
-                      style={styles.sportImage}
-                      imageStyle={styles.sportImageRadius}
-                      resizeMode="cover"
+            {step === 0 ? (
+              <View style={styles.sportList}>
+                {SPORTS.map((s) => {
+                  const active = sport === s.key;
+                  return (
+                    <TouchableOpacity
+                      key={s.key}
+                      style={[styles.sportCard, active && styles.sportCardActive]}
+                      onPress={() => setSport(s.key)}
+                      activeOpacity={0.9}
                     >
-                      <View style={styles.sportOverlay} />
-                    </ImageBackground>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          ) : step === 1 ? (
-            <View style={styles.centerCard}>
-              <View style={styles.yellowCard}>
-                {photoUri ? (
-                  <Image source={{ uri: photoUri }} style={styles.photo} resizeMode="cover" />
-                ) : (
-                  <TouchableOpacity style={styles.addPhoto} activeOpacity={0.8} onPress={pickPhoto}>
-                    <Image source={require('../assets/add_photo_placeholder.png')} style={styles.addIcon} resizeMode="contain" />
-                    <Text style={styles.addText}>Add a photo</Text>
-                  </TouchableOpacity>
-                )}
+                      <ImageBackground
+                        source={s.img}
+                        style={styles.sportImage}
+                        imageStyle={styles.sportImageRadius}
+                        resizeMode="cover"
+                      >
+                        <View style={styles.sportOverlay} />
+                      </ImageBackground>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
-              <Text style={styles.note}>Important! We do not use your data, your photo is only for you.</Text>
-              <View style={styles.dots}>
-                <View style={[styles.dot, styles.dotActive]} />
-                <View style={[styles.dot, styles.dotInactive]} />
+            ) : step === 1 ? (
+              <View style={styles.centerCard}>
+                <View style={styles.yellowCard}>
+                  {photoUri ? (
+                    <Image source={{ uri: photoUri }} style={styles.photo} resizeMode="cover" />
+                  ) : (
+                    <TouchableOpacity style={styles.addPhoto} activeOpacity={0.8} onPress={pickPhoto}>
+                      <Image source={require('../assets/add_photo_placeholder.png')} style={styles.addIcon} resizeMode="contain" />
+                      <Text style={styles.addText}>Add a photo</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+                <Text style={styles.note}>Important! We do not use your data, your photo is only for you.</Text>
+                <View style={styles.dots}>
+                  <View style={[styles.dot, styles.dotActive]} />
+                  <View style={[styles.dot, styles.dotInactive]} />
+                </View>
               </View>
-            </View>
-          ) : (
-            <View style={styles.centerCard}>
-              <TouchableOpacity style={styles.yellowCard} activeOpacity={1} onPress={() => nameRef.current?.focus()}>
-                <TextInput
-                  ref={nameRef}
-                  style={styles.input}
-                  placeholder="Add a name"
-                  placeholderTextColor="#8F8F8F"
-                  value={name}
-                  onChangeText={setName}
-                  autoFocus
-                  returnKeyType="done"
-                />
-              </TouchableOpacity>
-              <Text style={styles.note}>Important! We do not use your data, your data is only for you.</Text>
-              <View style={styles.dots}>
-                <View style={[styles.dot, styles.dotInactive]} />
-                <View style={[styles.dot, styles.dotActive]} />
+            ) : (
+              <View style={styles.centerCard}>
+                <TouchableOpacity style={styles.yellowCard} activeOpacity={1} onPress={() => nameRef.current?.focus()}>
+                  <TextInput
+                    ref={nameRef}
+                    style={styles.input}
+                    placeholder="Add a name"
+                    placeholderTextColor="#8F8F8F"
+                    value={name}
+                    onChangeText={setName}
+                    autoFocus
+                    returnKeyType="done"
+                  />
+                </TouchableOpacity>
+                <Text style={styles.note}>Important! We do not use your data, your data is only for you.</Text>
+                <View style={styles.dots}>
+                  <View style={[styles.dot, styles.dotInactive]} />
+                  <View style={[styles.dot, styles.dotActive]} />
+                </View>
               </View>
-            </View>
-          )}
-        </Animated.View>
+            )}
+          </Animated.View>
 
-        <TouchableOpacity
-          style={[styles.btn, !canProceed && { opacity: 0.5 }, { marginBottom: buttonBottomInset }]}
-          onPress={onPressMain}
-          activeOpacity={0.9}
-          disabled={!canProceed}
-        >
-          <Text style={styles.btnText}>{buttonLabel}</Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+          <TouchableOpacity
+            style={[styles.btn, !canProceed && { opacity: 0.5 }, { marginBottom: buttonBottomInset }]}
+            onPress={onPressMain}
+            activeOpacity={0.9}
+            disabled={!canProceed}
+          >
+            <Text style={styles.btnText}>{buttonLabel}</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    </ImageBackground>
   );
 }
 
 const LOGO_W = Math.min(width * 0.42, 220);
-const LOGO_H = VERY_SMALL ? 36 : 44;
+const LOGO_H = VERY_SMALL ? 96 : 94;
 const SPORT_H = VERY_SMALL ? 92 : IS_SMALL ? 110 : 120;
 const SPORT_RADIUS = 14;
 const CARD_SIDE = Math.min(width - 64, VERY_SMALL ? 300 : 320);
 const INPUT_PAD_V = VERY_SMALL ? 12 : 14;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: BG, paddingHorizontal: 20 },
+  background: { flex: 1 },
+  overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: OVERLAY_COLOR },
+  container: { flex: 1, paddingHorizontal: 20 },
   logoWrap: { alignItems: 'center', justifyContent: 'center', marginBottom: IS_SMALL ? 8 : 12 },
   logo: { width: LOGO_W, height: LOGO_H },
   header: { color: TEXT, fontSize: VERY_SMALL ? 18 : 20, fontWeight: '700', textAlign: 'center', marginBottom: 14 },

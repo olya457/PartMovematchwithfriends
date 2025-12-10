@@ -24,30 +24,31 @@ const { width, height } = Dimensions.get('window');
 const IS_SMALL = Math.min(width, height) < 700 || width <= 360;
 const VERY_SMALL = height < 670;
 
-const YELLOW = '#FFE651';
-const BG = '#000';
+const BACKGROUND_IMAGE = require('../assets/background.png'); 
+const YELLOW = '#eeeeeaff';
 const TEXT = '#FFFFFF';
-const CARD_BG = '#0B0B0B';
+const CARD_BG = '#0b0b0b16';
 
-const SPORTS: Array<{ key: SportKey; img: any }> = [
-  { key: 'tennis',     img: require('../assets/sport_tennis.png') },
-  { key: 'football',   img: require('../assets/sport_football.png') },
-  { key: 'volleyball', img: require('../assets/sport_volleyball.png') },
+const SPORTS: Array<{ key: SportKey; img: any; title: string }> = [
+  { key: 'tennis', img: require('../assets/sport_tennis.png'), title: 'Tennis' },
+  { key: 'football', img: require('../assets/sport_football.png'), title: 'Football' },
+  { key: 'volleyball', img: require('../assets/sport_volleyball.png'), title: 'Volleyball' },
 ];
 
 export default function ChangingSportsScreen({ navigation }: Props) {
   const [selected, setSelected] = useState<SportKey>('tennis');
   const fade = useRef(new Animated.Value(0)).current;
   const shift = useRef(new Animated.Value(16)).current;
+  
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(fade,  { toValue: 1, duration: 420, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+      Animated.timing(fade, { toValue: 1, duration: 420, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
       Animated.timing(shift, { toValue: 0, duration: 420, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
     ]).start();
-  }, []);
+  }, [fade, shift]);
 
   const CARD_H = useMemo(() => (VERY_SMALL ? 96 : IS_SMALL ? 112 : 124), []);
-  const BTN_H  = useMemo(() => (IS_SMALL ? 56 : 60), []);
+  const BTN_H = useMemo(() => (IS_SMALL ? 56 : 60), []);
 
   useEffect(() => {
     (async () => {
@@ -103,7 +104,8 @@ export default function ChangingSportsScreen({ navigation }: Props) {
   );
 
   return (
-    <View style={styles.root}>
+    <ImageBackground source={BACKGROUND_IMAGE} style={styles.root} resizeMode="cover">
+      <View style={styles.overlayRoot} />
       <HeaderBar title="Changing sports" />
 
       <Animated.View
@@ -114,7 +116,6 @@ export default function ChangingSportsScreen({ navigation }: Props) {
           paddingHorizontal: 16,
         }}
       >
-        <View style={{ height: 20 }} />
         <Text style={styles.subtitle}>Choose a sport</Text>
         <View style={{ gap: 32 }}>
           {SPORTS.map((s, idx) => {
@@ -132,7 +133,8 @@ export default function ChangingSportsScreen({ navigation }: Props) {
                     imageStyle={{ borderRadius: 14 }}
                     resizeMode="cover"
                   >
-                    <View style={styles.overlay} />
+                
+                    <View style={styles.overlay} /> 
                   </ImageBackground>
                 </TouchableOpacity>
               </Animated.View>
@@ -143,12 +145,13 @@ export default function ChangingSportsScreen({ navigation }: Props) {
           <Text style={styles.chooseText}>Choose</Text>
         </TouchableOpacity>
       </Animated.View>
-    </View>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: BG, alignItems: 'center', paddingTop: IS_SMALL ? 60 : 64 },
+  root: { flex: 1, alignItems: 'center', paddingTop: IS_SMALL ? 60 : 64 },
+  overlayRoot: { ...StyleSheet.absoluteFillObject, backgroundColor: '#320909e4' },
   headerWrap: { width: '100%', paddingHorizontal: 16, marginBottom: 20 },
   headerBar: {
     height: 64,
@@ -158,10 +161,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
+    backgroundColor: '#000000a0',
   },
   headerBtn: {
     width: 48, height: 48, borderRadius: 12, borderWidth: 2, borderColor: YELLOW,
     alignItems: 'center', justifyContent: 'center',
+    backgroundColor: '#000000a0',
   },
   headerBtnIcon: { color: TEXT, fontSize: 18, fontWeight: '800', marginTop: -1 },
   headerTitle: { flex: 1, textAlign: 'center', color: TEXT, fontSize: 20, fontWeight: '800' },
@@ -177,8 +182,11 @@ const styles = StyleSheet.create({
   },
   cardActive: { borderColor: YELLOW },
 
-  overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.18)' },
-
+  overlay: { 
+    ...StyleSheet.absoluteFillObject, 
+    backgroundColor: 'rgba(0,0,0,0.18)',
+  },
+  
   chooseBtn: {
     backgroundColor: YELLOW,
     borderRadius: 16,

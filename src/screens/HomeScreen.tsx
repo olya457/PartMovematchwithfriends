@@ -9,6 +9,7 @@ import {
   SafeAreaView,
   ViewStyle,
   TextStyle,
+  ImageBackground, 
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
@@ -20,8 +21,11 @@ const { width, height } = Dimensions.get('window');
 const IS_SMALL = Math.min(width, height) < 700 || width <= 360;
 const VERY_SMALL = height < 670;
 
-const YELLOW = '#FFE651';
-const BG = '#000000';
+const BACKGROUND_IMAGE = require('../assets/background.png'); 
+const YELLOW = '#f2f1eaff';
+const TEXT = '#FFFFFF';
+const CARD_BG = '#0F0F0F'; 
+const OVERLAY_COLOR = '#1b0e0e25'; 
 
 const BTN_W = Math.min(width - 64, 320);
 const BTN_H = VERY_SMALL ? 54 : 60;
@@ -73,56 +77,72 @@ export default function HomeScreen({ navigation }: Props) {
     navigation.navigate(it.route);
   };
 
-  const btnStyle = (key: Key): ViewStyle =>
-    key === active ? styles.primaryBtn : styles.outlineBtn;
+  const btnStyle = (key: Key): ViewStyle[] => [
+    styles.commonBtn,
+    key === active ? styles.primaryBtn : styles.outlineBtn
+  ];
 
-  const txtStyle = (key: Key): TextStyle =>
-    key === active ? styles.primaryText : styles.outlineText;
+  const txtStyle = (key: Key): TextStyle[] => [
+    styles.commonText,
+    key === active ? styles.primaryText : styles.outlineText
+  ];
 
   const BALL_SRC = BALL_ASSETS[sport];
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: BG }}>
-      <View style={styles.container}>
+    <ImageBackground source={BACKGROUND_IMAGE} style={styles.background} resizeMode="cover">
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.overlay} />
+        <View style={styles.container}>
 
-        <Image
-          source={require('../assets/logo.png')}
-          style={styles.logo}
-          resizeMode="contain"
-        />
-
-        {items.map(it => (
-          <TouchableOpacity
-            key={it.key}
-            style={btnStyle(it.key)}
-            activeOpacity={0.9}
-            onPress={() => pressItem(it)}
-          >
-            <Text style={txtStyle(it.key)}>{it.label}</Text>
-          </TouchableOpacity>
-        ))}
-
-        <TouchableOpacity
-          style={styles.ballBtn}
-          activeOpacity={0.9}
-          onPress={() => navigation.navigate('changing')}
-        >
           <Image
-            source={BALL_SRC}
-            style={styles.ballImg}
+            source={require('../assets/logo.png')}
+            style={styles.logo}
             resizeMode="contain"
           />
-        </TouchableOpacity>
 
-      </View>
-    </SafeAreaView>
+          {items.map(it => (
+            <TouchableOpacity
+              key={it.key}
+              style={btnStyle(it.key)}
+              activeOpacity={0.9}
+              onPress={() => pressItem(it)}
+            >
+              <Text style={txtStyle(it.key)}>{it.label}</Text>
+            </TouchableOpacity>
+          ))}
+
+          <TouchableOpacity
+            style={styles.ballBtn}
+            activeOpacity={0.9}
+            onPress={() => navigation.navigate('changing')}
+          >
+            <Image
+              source={BALL_SRC}
+              style={styles.ballImg}
+              resizeMode="contain"
+            />
+          </TouchableOpacity>
+
+        </View>
+      </SafeAreaView>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+  },
+  safeArea: {
+    flex: 1,
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: OVERLAY_COLOR, 
+  },
   container: {
     flex: 1,
-    backgroundColor: BG,
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingTop: 30, 
@@ -135,36 +155,35 @@ const styles = StyleSheet.create({
     marginBottom: IS_SMALL ? 28 : 36,
   },
 
-  primaryBtn: {
+  commonBtn: {
     width: BTN_W,
     height: BTN_H,
     borderRadius: RADIUS,
-    backgroundColor: YELLOW,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
   },
+
+  primaryBtn: {
+    backgroundColor: YELLOW,
+  },
   primaryText: {
     color: '#0B0B0B',
-    fontSize: VERY_SMALL ? 18 : 20,
     fontWeight: '800',
   },
 
   outlineBtn: {
-    width: BTN_W,
-    height: BTN_H,
-    borderRadius: RADIUS,
     borderWidth: 2,
     borderColor: YELLOW,
-    backgroundColor: '#0F0F0F',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
+    backgroundColor: CARD_BG,
   },
   outlineText: {
-    color: '#FFFFFF',
-    fontSize: VERY_SMALL ? 18 : 20,
+    color: TEXT,
     fontWeight: '700',
+  },
+
+  commonText: {
+    fontSize: VERY_SMALL ? 18 : 20,
   },
 
   ballBtn: {
@@ -176,6 +195,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: IS_SMALL ? 6 : 10,
+    backgroundColor: CARD_BG, 
   },
 
   ballImg: {
